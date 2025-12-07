@@ -320,29 +320,20 @@ document.getElementById('btnAddTest').addEventListener('click', createTestOp);
   for(let i=0;i<2;i++) createTestOp();
 })();
 
-// --------------- OPTIONAL: Firebase integration -----------------
-/*
-If you want to use Firebase Realtime Database:
-1) Include Firebase SDK scripts (uncomment the script tags below and add them to the page)
-2) Provide firebaseConfig with your project's config
-3) Call initFirebase(firebaseConfig) from console or modify code to auto-init
+const firebaseConfig = {
+  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
+  authDomain: "app-fairpay.firebaseapp.com",
+  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
+  projectId: "app-fairpay",
+  storageBucket: "app-fairpay.firebasestorage.app",
+  messagingSenderId: "29576302334",
+  appId: "1:29576302334:web:0e559f804bf62c59981faf"
+};
 
-Example usage (in dev console):
-initFirebase({
- apiKey: "...",
- authDomain: "...",
- databaseURL: "https://<your-db>.firebaseio.com",
- projectId: "...",
- storageBucket: "...",
- messagingSenderId: "...",
- appId: "..."
-});
-*/
-
-// Note: we don't include the SDK by default to keep file standalone.
-// If you need, paste these two script tags into head (one time):
-// <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+const app = initializeApp(firebaseConfig);
+</script>
+  
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 function initFirebase(config){
   if(typeof firebase === 'undefined' || !firebase || !firebase.initializeApp){
@@ -411,27 +402,6 @@ function snapshotToOp(snapshot){
   });
   return { key, status, terminalId, amount, totalCount, items, time };
 }
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
-  authDomain: "app-fairpay.firebaseapp.com",
-  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
-  projectId: "app-fairpay",
-  storageBucket: "app-fairpay.firebasestorage.app",
-  messagingSenderId: "29576302334",
-  appId: "1:29576302334:web:0e559f804bf62c59981faf"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Expose initFirebase to global so user can call from console
 window.initFirebase = initFirebase;
 window.createTestOp = createTestOp;
 </script>
