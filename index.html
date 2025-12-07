@@ -105,18 +105,6 @@
 <div id="modalRoot" style="display:none;"></div>
 
 <script>
-  
-const firebaseConfig = {
-  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
-  authDomain: "app-fairpay.firebaseapp.com",
-  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
-  projectId: "app-fairpay",
-  storageBucket: "app-fairpay.firebasestorage.app",
-  messagingSenderId: "29576302334",
-  appId: "1:29576302334:web:0e559f804bf62c59981faf"
-};
-
-const app = initializeApp(firebaseConfig);
 initFirebase()
 
 const ops = new Map(); // key -> operation object
@@ -389,13 +377,18 @@ function snapshotToOp(snapshot){
   return { key, status, terminalId, amount, totalCount, items, time };
 }
 
-// ---------------------------------------------------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
+  authDomain: "app-fairpay.firebaseapp.com",
+  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
+  projectId: "app-fairpay",
+  storageBucket: "app-fairpay.firebasestorage.app",
+  messagingSenderId: "29576302334",
+  appId: "1:29576302334:web:0e559f804bf62c59981faf"
+};
 
-/* Example: if you want to automatically initialize firebase on load,
-   you can call initFirebase(YOUR_CONFIG_OBJECT) here.
-*/
-
-// Expose initFirebase to global so user can call from console
+const app = initializeApp(firebaseConfig);
+  
 window.initFirebase = initFirebase;
 window.createTestOp = createTestOp;
 </script>
