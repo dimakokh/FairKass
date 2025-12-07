@@ -1,61 +1,49 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FairKass — Веб-касса</title>
 <style>
-:root{
-  --bg:#FFF8F0;
-  --card:#fff;
-  --accent:#FFDDAA;
-  --accent-strong:#FFD699;
-  --orange:#D2691E;
-  --green:#2E7D32;
-  --red:#B71C1C;
-  --shadow: 0 6px 18px rgba(0,0,0,0.06);
-  --radius:14px;
-  --mono: "Segoe UI", Roboto, Arial, sans-serif;
-}
-html,body{height:100%;margin:0;font-family:var(--mono);background:var(--bg);color:#222}
-.app {max-width:480px;margin:0 auto;padding:12px;}
-
-header{display:flex;align-items:center;gap:10px;padding:8px 0;}
-.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow)}
-h1{font-size:18px;margin:0;line-height:1.2}
-
-.toolbar{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
-.toolbar .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.btn{background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);font-size:14px;}
-.btn.secondary{background:transparent}
-.status-badge{padding:6px 10px;border-radius:999px;font-weight:600;display:inline-block;}
-
-.list{display:flex;flex-direction:column;gap:12px;min-height:200px;}
-
-.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
-.row-top{display:flex;align-items:center;justify-content:space-between}
-.left-info{display:flex;flex-direction:column;flex:1}
-.terminal{font-weight:700;font-size:14px}
-.amount{font-weight:700;font-size:16px;margin-top:2px}
-.items{color:#444;font-size:13px;margin-top:8px}
-
-.card.pending{background:linear-gradient(180deg,#FFF8EA 0,#FFF3D6 100%)}
-
-.actions{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
-
-footer{margin-top:18px;padding:12px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between;font-size:14px}
-
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:40}
-.modal{width:90%;max-width:360px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,0.35)}
-.modal h2{margin:0 0 8px 0;font-size:16px}
-.modal .meta{color:#666;font-size:12px;margin-bottom:10px}
-.modal .positions{font-family:monospace;background:#f7f7f7;padding:8px;border-radius:8px;max-height:180px;overflow:auto}
-.modal .modal-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
-@media (max-width:400px){
-  .amount{font-size:14px}
-  h1{font-size:16px}
-  .btn{font-size:12px;padding:6px 10px;}
-}
+  :root{
+    --bg:#FFF8F0;
+    --card:#fff;
+    --accent:#FFDDAA;
+    --accent-strong:#FFD699;
+    --orange:#D2691E;
+    --green:#2E7D32;
+    --red:#B71C1C;
+    --shadow:0 6px 18px rgba(0,0,0,0.06);
+    --radius:12px;
+    --mono:"Segoe UI", Roboto, Arial, sans-serif;
+  }
+  html,body{height:100%;margin:0;font-family:var(--mono);background:var(--bg);color:#222}
+  .app{max-width:480px;margin:0 auto;padding:12px}
+  header{display:flex;align-items:center;gap:12px;padding:8px 0}
+  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow)}
+  h1{font-size:18px;margin:0;line-height:1.2}
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:8px 0;gap:8px}
+  .toolbar .left{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+  .btn{background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);font-size:14px}
+  .btn.secondary{background:transparent}
+  .status-badge{padding:6px 10px;border-radius:999px;font-weight:600;font-size:14px}
+  #terminalInput{width:100%;padding:8px;border-radius:10px;border:1px solid #ccc;font-size:14px;box-sizing:border-box}
+  .list{margin-top:12px;display:flex;flex-direction:column;gap:12px;min-height:200px}
+  .card{background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .row-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .left-info{display:flex;flex-direction:column;gap:2px}
+  .terminal{font-weight:700;font-size:14px}
+  .amount{font-size:16px;font-weight:700}
+  .items{color:#444;font-size:13px;margin-top:8px;word-break:break-word}
+  .card.pending{background:linear-gradient(180deg,#FFF8EA 0,#FFF3D6 100%)}
+  .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  footer{margin-top:12px;padding:8px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:40}
+  .modal{width:90%;max-width:400px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,0.35)}
+  .modal h2{margin:0 0 6px 0;font-size:18px}
+  .modal .meta{color:#666;font-size:13px;margin-bottom:8px}
+  .modal .positions{font-family:monospace;background:#f7f7f7;padding:10px;border-radius:8px;max-height:180px;overflow:auto;margin-bottom:8px}
+  .modal .modal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:8px}
 </style>
 </head>
 <body>
@@ -63,162 +51,135 @@ footer{margin-top:18px;padding:12px;border-radius:10px;background:#FFF0C2;displa
   <header>
     <div class="logo">FK</div>
     <div>
-      <h1>FairKass — Кассир</h1>
-      <div style="font-size:12px;color:#555">Онлайн-касса с привязкой терминала</div>
+      <h1>FairKass — Веб-касса</h1>
+      <div style="font-size:12px;color:#555">Привяжите терминал, чтобы управлять операциями</div>
     </div>
   </header>
 
   <div class="toolbar">
-    <div class="row">
-      <input type="text" id="terminalInput" placeholder="Введите ID терминала" style="flex:1;padding:6px;border-radius:8px;border:1px solid #ccc;font-size:14px">
-      <button class="btn" id="btnBind">Привязать</button>
-    </div>
-    <div class="row">
-      <button class="btn" id="btnAddTest">Создать тестовую операцию</button>
-      <button class="btn secondary" id="btnClear">Очистить список</button>
-    </div>
-    <div style="margin-top:4px;font-size:12px;color:#555" id="bindStatus">Привяжите терминал, чтобы управлять им</div>
+    <input type="text" id="terminalInput" placeholder="Введите ID терминала (только цифры)">
+    <button class="btn" id="btnBindTerminal">Привязать</button>
+    <button class="btn secondary" id="btnClear">Очистить список</button>
   </div>
 
   <main>
-    <div id="list" class="list" aria-live="polite"></div>
+    <div id="list" class="list"></div>
+    <div id="listMessage" style="margin-top:12px;color:#666;font-size:14px;text-align:center"></div>
   </main>
 </div>
 
-<div id="modalRoot" style="display:none;"></div>
+<div id="modalRoot" style="display:none"></div>
 
 <script>
 const ops = new Map();
 const listEl = document.getElementById('list');
-const newCountEl = document.getElementById('bindStatus');
-let boundTerminal = localStorage.getItem('boundTerminal') || '';
-updateBindStatus();
+const listMsgEl = document.getElementById('listMessage');
+const terminalInput = document.getElementById('terminalInput');
+const btnBind = document.getElementById('btnBindTerminal');
 
-function updateBindStatus(){
-  if(!boundTerminal) newCountEl.textContent = 'Привяжите терминал, чтобы управлять им';
-  else newCountEl.textContent = 'Привязан терминал: ' + boundTerminal;
-  refreshList();
-}
-
-document.getElementById('btnBind').addEventListener('click',()=>{
-  const val = document.getElementById('terminalInput').value.trim();
-  if(!/^\d+$/.test(val)){
-    alert('ID терминала должен состоять только из цифр');
-    return;
-  }
-  boundTerminal = val;
-  localStorage.setItem('boundTerminal', boundTerminal);
-  updateBindStatus();
-});
+let currentTerminal = localStorage.getItem('terminalId') || '';
 
 function formatMoney(n){return n.toFixed(2)+' ₽'}
 function formatTime(ts){return new Date(ts).toLocaleString()}
 
+// Render card
 function buildCard(op){
-  if(boundTerminal && op.terminalId !== boundTerminal) return null;
-  const card = document.createElement('div'); card.className='card'+(op.status==='pending'?' pending':'');
+  const card = document.createElement('div');
+  card.className='card'+(op.status==='pending'?' pending':'');
   const top = document.createElement('div'); top.className='row-top';
   const left = document.createElement('div'); left.className='left-info';
-  const term = document.createElement('div'); term.className='terminal'; term.textContent = op.terminalId || 'TERM';
-  const amount = document.createElement('div'); amount.className='amount'; amount.textContent = formatMoney(op.amount || 0);
+  const term = document.createElement('div'); term.className='terminal'; term.textContent=op.terminalId||'TERM';
+  const amount = document.createElement('div'); amount.className='amount'; amount.textContent=formatMoney(op.amount||0);
   left.appendChild(term); left.appendChild(amount);
-
-  const status = document.createElement('div'); status.style.minWidth='96px'; status.style.textAlign='right';
-  const st = document.createElement('div'); st.textContent = (op.status||'pending').toUpperCase(); st.className='status-badge';
-  if(op.status==='pending'){ st.style.background='var(--accent-strong)'; st.style.color='var(--orange)'; }
-  else if(op.status==='confirmed'){ st.style.background='#E8F5E9'; st.style.color='var(--green)'; }
-  else st.style.background='#FFEBEE', st.style.color='var(--red)';
-  status.appendChild(st);
-
-  top.appendChild(left); top.appendChild(status); card.appendChild(top);
-
+  const st = document.createElement('div'); st.textContent=(op.status||'pending').toUpperCase(); st.className='status-badge';
+  if(op.status==='pending'){ st.style.background='var(--accent-strong)'; st.style.color='var(--orange)';}
+  else if(op.status==='confirmed'){ st.style.background='#E8F5E9'; st.style.color='var(--green)';}
+  else{ st.style.background='#FFEBEE'; st.style.color='var(--red)';}
+  top.appendChild(left); top.appendChild(st);
+  card.appendChild(top);
   const itemsSummary = document.createElement('div'); itemsSummary.className='items';
-  if(op.items && op.items.length) itemsSummary.textContent=op.items.map(i=>i.name+' x'+i.count).join('; ');
-  else itemsSummary.textContent='—';
+  itemsSummary.textContent = op.items && op.items.length? op.items.map(i=>`${i.name} x${i.count}`).join('; '): '—';
   card.appendChild(itemsSummary);
-
   const actions = document.createElement('div'); actions.className='actions';
-  const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Просмотр'; viewBtn.onclick=()=>showModal(op);
-  const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить'; accept.onclick=()=>updateOpStatus(op.key,'confirmed');
-  const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Отклонить'; reject.onclick=()=>updateOpStatus(op.key,'cancelled');
-  actions.appendChild(viewBtn); actions.appendChild(accept); actions.appendChild(reject);
+  const viewBtn=document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Просмотр'; viewBtn.onclick=()=>showModal(op);
+  const acceptBtn=document.createElement('button'); acceptBtn.className='btn'; acceptBtn.textContent='Подтвердить'; acceptBtn.onclick=()=>updateOpStatus(op.key,'confirmed');
+  const rejectBtn=document.createElement('button'); rejectBtn.className='btn'; rejectBtn.textContent='Отклонить'; rejectBtn.onclick=()=>updateOpStatus(op.key,'cancelled');
+  actions.appendChild(viewBtn); actions.appendChild(acceptBtn); actions.appendChild(rejectBtn);
   card.appendChild(actions);
   return card;
 }
 
+// Refresh list with terminal filtering
 function refreshList(){
-  listEl.innerHTML='';
-  const arr = Array.from(ops.values());
-  let filtered = boundTerminal? arr.filter(o=>o.terminalId===boundTerminal) : [];
-  if(boundTerminal && filtered.length===0){
-    const emptyMsg = document.createElement('div'); emptyMsg.textContent='Список пуст. Возможно, терминал не привязан или неверный'; emptyMsg.style.color='#555'; emptyMsg.style.fontSize='14px'; listEl.appendChild(emptyMsg); return;
-  }
-  if(!boundTerminal){
-    const emptyMsg = document.createElement('div'); emptyMsg.textContent='Привяжите терминал, чтобы управлять им'; emptyMsg.style.color='#555'; emptyMsg.style.fontSize='14px'; listEl.appendChild(emptyMsg); return;
-  }
-  const pend = filtered.filter(o=>o.status==='pending');
-  const others = filtered.filter(o=>o.status!=='pending');
-  const ordered = [...pend,...others];
-  for(const op of ordered){
-    const card = buildCard(op); if(card) listEl.appendChild(card);
+  listEl.innerHTML=''; 
+  const arr=Array.from(ops.values()).filter(op => !currentTerminal || op.terminalId===currentTerminal);
+  if(arr.length===0){
+    listMsgEl.textContent=currentTerminal? 'Список пуст. Возможно, привязали неверный терминал':'Привяжите терминал, чтобы управлять им';
+  } else {
+    listMsgEl.textContent='';
+    arr.sort((a,b)=> (a.status==='pending'? -1:1)).forEach(op=> listEl.appendChild(buildCard(op)));
   }
 }
 
+// Show modal
 function showModal(op){
-  const root = document.getElementById('modalRoot'); root.innerHTML=''; root.style.display='block';
-  const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
-  const modal = document.createElement('div'); modal.className='modal';
-  const h = document.createElement('h2'); h.textContent=`Оплата: ${formatMoney(op.amount || 0)}`;
-  const meta = document.createElement('div'); meta.className='meta'; meta.textContent=`Терминал: ${op.terminalId || '—'} • Штук: ${op.totalCount || 0} • Время: ${formatTime(op.time||Date.now())}`;
-  const pos = document.createElement('div'); pos.className='positions';
-  if(op.items && op.items.length) pos.innerHTML=op.items.map(i=>`${i.name} x${i.count} — ${(i.price*i.count).toFixed(2)} ₽`).join('<br>');
-  else pos.textContent='Нет позиций';
-  const actions = document.createElement('div'); actions.className='modal-actions';
-  const btnDecline=document.createElement('button'); btnDecline.className='btn'; btnDecline.textContent='Отклонить'; btnDecline.onclick=()=>{updateOpStatus(op.key,'cancelled'); closeModal();};
-  const btnAccept=document.createElement('button'); btnAccept.className='btn'; btnAccept.textContent='Подтвердить'; btnAccept.onclick=()=>{updateOpStatus(op.key,'confirmed'); closeModal();};
-  const btnClose=document.createElement('button'); btnClose.className='btn secondary'; btnClose.textContent='Закрыть'; btnClose.onclick=closeModal;
-  actions.appendChild(btnDecline); actions.appendChild(btnAccept); actions.appendChild(btnClose);
+  const root=document.getElementById('modalRoot');
+  root.innerHTML=''; root.style.display='block';
+  const backdrop=document.createElement('div'); backdrop.className='modal-backdrop';
+  const modal=document.createElement('div'); modal.className='modal';
+  const h=document.createElement('h2'); h.textContent=`Оплата: ${formatMoney(op.amount||0)}`;
+  const meta=document.createElement('div'); meta.className='meta'; meta.textContent=`Терминал: ${op.terminalId||'—'} • Штук: ${op.totalCount||0} • Время: ${formatTime(op.time||Date.now())}`;
+  const pos=document.createElement('div'); pos.className='positions';
+  pos.innerHTML=op.items && op.items.length? op.items.map(i=>`${i.name} x${i.count} — ${(i.price*i.count).toFixed(2)} ₽`).join('<br>'):'Нет позиций';
+  const actions=document.createElement('div'); actions.className='modal-actions';
+  const decline=document.createElement('button'); decline.className='btn'; decline.textContent='Отклонить'; decline.onclick=()=>{updateOpStatus(op.key,'cancelled'); closeModal();}
+  const accept=document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить'; accept.onclick=()=>{updateOpStatus(op.key,'confirmed'); closeModal();}
+  const close=document.createElement('button'); close.className='btn secondary'; close.textContent='Закрыть'; close.onclick=closeModal;
+  actions.appendChild(decline); actions.appendChild(accept); actions.appendChild(close);
   modal.appendChild(h); modal.appendChild(meta); modal.appendChild(pos); modal.appendChild(actions);
   backdrop.appendChild(modal); root.appendChild(backdrop);
-
-  function closeModal(){root.innerHTML=''; root.style.display='none';}
+  function closeModal(){ root.innerHTML=''; root.style.display='none'; }
 }
 
+// Update status
 function updateOpStatus(key,newStatus){
-  const op = ops.get(key); if(!op) return; op.status=newStatus; op.handledBy='kassir@web'; op.handledAt=Date.now();
+  const op=ops.get(key); if(!op) return;
+  op.status=newStatus; op.handledBy='kassir@web'; op.handledAt=Date.now();
   ops.set(key,op); refreshList(); showToast('Статус изменён: '+newStatus);
 }
 
+// Toast
 function showToast(msg){
   const t=document.createElement('div'); t.textContent=msg;
-  t.style.position='fixed'; t.style.bottom='12px'; t.style.left='50%'; t.style.transform='translateX(-50%)';
-  t.style.background='#222'; t.style.color='#fff'; t.style.padding='8px 12px'; t.style.borderRadius='10px'; t.style.zIndex=9999;
-  document.body.appendChild(t); setTimeout(()=>t.remove(),2200);
+  t.style.position='fixed'; t.style.bottom='12px'; t.style.right='12px'; t.style.background='#222'; t.style.color='#fff'; t.style.padding='8px 12px'; t.style.borderRadius='10px'; t.style.zIndex=9999;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2000);
 }
 
-// Create test operation
+// Create test op
 function createTestOp(){
-  const key='op_'+Math.random().toString(36).slice(2,8);
-  const now=Date.now();
-  const count=Math.floor(Math.random()*5)+1;
-  const items=Array.from({length:count}).map((_,i)=>({
-    id:'it'+i,
-    name:['Хлеб','Молоко','Яблоко','Колбаса','Сыр'][Math.floor(Math.random()*5)],
-    price:+((Math.random()*200+20).toFixed(2)),
-    count:Math.floor(Math.random()*3)+1
-  }));
+  const key='op_'+Math.random().toString(36).slice(2,9);
+  const now=Date.now(); const count=Math.floor(Math.random()*5)+1;
+  const items=Array.from({length:count}).map((_,i)=>({id:'it'+i,name:['Хлеб','Молоко','Яблоко','Колбаса','Сыр'][Math.floor(Math.random()*5)],price:+((Math.random()*200+20).toFixed(2)),count:Math.floor(Math.random()*3)+1}));
   const amount=items.reduce((s,it)=>s+it.price*it.count,0);
-  const op={key,status:'pending',terminalId:'T'+(100+Math.floor(Math.random()*900)),
-    amount:+amount.toFixed(2), totalCount: items.reduce((s,i)=>s+i.count,0), items, time:now};
-  ops.set(op.key,op); refreshList();
+  const op={key,status:'pending',terminalId:'T'+(100+Math.floor(Math.random()*900)),amount:+amount.toFixed(2),totalCount:items.reduce((s,i)=>s+i.count,0),items,time:now};
+  ops.set(op.key,op); refreshList(); showModal(op);
 }
 
-// Event listeners
-document.getElementById('btnClear').addEventListener('click',()=>{ops.clear();refreshList();});
-document.getElementById('btnAddTest').addEventListener('click',createTestOp);
+// Bind terminal
+btnBind.addEventListener('click',()=>{
+  const val=terminalInput.value.trim();
+  if(!/^\d+$/.test(val)){ alert('ID терминала должен содержать только цифры'); return;}
+  currentTerminal=val; localStorage.setItem('terminalId',currentTerminal); refreshList(); showToast('Терминал привязан: '+currentTerminal);
+});
 
-// Seed
+// Clear list
+document.getElementById('btnClear').addEventListener('click',()=>{ops.clear(); refreshList();});
+
+// Seed test operations
 for(let i=0;i<2;i++) createTestOp();
+
+// On load, show terminal
+if(currentTerminal){ terminalInput.value=currentTerminal; refreshList(); }
 </script>
 </body>
 </html>
