@@ -110,13 +110,18 @@
 <div id="modalRoot" style="display:none;"></div>
 
 <script>
-/*
-  Прототип веб-версии кассы на чистом JS.
-  Режимы:
-   - MOCK (по умолчанию): события создаются локально (кнопка "Создать тестовую операцию")
-   - FIREBASE: при наличии инициализации Firebase будет слушать /paymentAttempts
-  Для активации Firebase: вставьте config в firebaseConfig значения и вызовите initFirebase()
-*/
+  
+const firebaseConfig = {
+  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
+  authDomain: "app-fairpay.firebaseapp.com",
+  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
+  projectId: "app-fairpay",
+  storageBucket: "app-fairpay.firebasestorage.app",
+  messagingSenderId: "29576302334",
+  appId: "1:29576302334:web:0e559f804bf62c59981faf"
+};
+
+const app = initializeApp(firebaseConfig);
 
 const ops = new Map(); // key -> operation object
 const listEl = document.getElementById('list');
@@ -320,21 +325,6 @@ document.getElementById('btnAddTest').addEventListener('click', createTestOp);
   for(let i=0;i<2;i++) createTestOp();
 })();
 
-const firebaseConfig = {
-  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
-  authDomain: "app-fairpay.firebaseapp.com",
-  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
-  projectId: "app-fairpay",
-  storageBucket: "app-fairpay.firebasestorage.app",
-  messagingSenderId: "29576302334",
-  appId: "1:29576302334:web:0e559f804bf62c59981faf"
-};
-
-const app = initializeApp(firebaseConfig);
-</script>
-  
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 function initFirebase(config){
   if(typeof firebase === 'undefined' || !firebase || !firebase.initializeApp){
     alert('Firebase SDK не найден. Добавьте firebase-app-compat.js и firebase-database-compat.js в <head>.');
@@ -402,6 +392,14 @@ function snapshotToOp(snapshot){
   });
   return { key, status, terminalId, amount, totalCount, items, time };
 }
+
+// ---------------------------------------------------------------
+
+/* Example: if you want to automatically initialize firebase on load,
+   you can call initFirebase(YOUR_CONFIG_OBJECT) here.
+*/
+
+// Expose initFirebase to global so user can call from console
 window.initFirebase = initFirebase;
 window.createTestOp = createTestOp;
 </script>
