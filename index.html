@@ -52,6 +52,9 @@
   .items{color:#444;font-size:13px;margin-top:4px;word-break:break-word}
 
   .card.pending{background:linear-gradient(180deg,#FFF8EA 0,#FFF3D6 100%)}
+  .bottom-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .left-meta{display:flex;align-items:center;gap:10px;min-width:0}
+  .time-pill{font-size:13px;color:#555;background:#f3f3f3;padding:6px 10px;border-radius:8px}
   .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
 
   footer{margin-top:14px;padding:10px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -83,6 +86,8 @@
     .modal{padding:14px;border-radius:10px}
     .modal-backdrop{padding:8px}
     .items{font-size:14px}
+    .bottom-row{flex-direction:column;align-items:stretch}
+    .left-meta{width:100%;justify-content:space-between}
   }
 
   /* empty state */
@@ -130,6 +135,7 @@
     <div class="muted">База: <span id="dbInfo">paymentAttempts</span></div>
     <div style="display:flex;gap:8px;align-items:center">
       <button class="btn secondary" id="btnClear">Очистить отображение</button>
+      <button class="btn secondary" id="btnPurge">Очистить базу терминала</button>
       <button class="btn secondary" id="btnReload">Жёсткая перезагрузка</button>
     </div>
   </footer>
@@ -140,9 +146,10 @@
 
 <script>
 /*
-  Полный файл: только Firebase (mock удалён).
+  Полный файл: только Firebase.
   Добавлена привязка терминала (цифры), сохранение в localStorage,
   фильтрация операций по привязанному терминалу, сообщения об отсутствии данных.
+  Реализована очистка базы для привязанного терминала (необратимо).
 */
 
 // --- Вставьте сюда вашу конфигурацию Firebase ---
@@ -168,6 +175,7 @@ const btnBind = document.getElementById('btnBind');
 const btnUnbind = document.getElementById('btnUnbind');
 const emptyNotice = document.getElementById('emptyNotice');
 const btnClear = document.getElementById('btnClear');
+const btnPurge = document.getElementById('btnPurge');
 const btnReload = document.getElementById('btnReload');
 
 let boundTerminal = null;
@@ -206,6 +214,7 @@ function setBoundTerminal(id){
   renderList(); // apply filter
 }
 
+// Bind/unbind handlers
 btnBind.addEventListener('click', ()=> {
   const raw = terminalInput.value;
   const id = sanitizeTerminalInput(raw);
@@ -215,15 +224,59 @@ btnBind.addEventListener('click', ()=> {
   }
   setBoundTerminal(id);
 });
-
-btnUnbind.addEventListener('click', ()=> {
-  setBoundTerminal(null);
-});
+btnUnbind.addEventListener('click', ()=> setBoundTerminal(null));
 
 // clear view (does not touch DB)
 btnClear.addEventListener('click', ()=> {
   ops.clear(); renderList();
   showToast('Отображение очищено (данные в БД нетронуты)');
+});
+
+// purge DB for bound terminal
+btnPurge.addEventListener('click', async ()=> {
+  if(!boundTerminal){
+    alert('Сначала привяжите терминал, для которого нужно очистить записи.');
+    return;
+  }
+  const ok = confirm(`Вы действительно хотите удалить все записи в БД для терминала ${boundTerminal}?\n\nЭто действие необратимо.`);
+  if(!ok) return;
+
+  if(!dbRef){
+    alert('Нет подключения к БД.');
+    return;
+  }
+
+  // find keys to remove
+  try {
+    showToast('Поиск записей... Пожалуйста, подождите.');
+    const snapshot = await dbRef.once('value');
+    const toRemove = [];
+    snapshot.forEach(child => {
+      const val = child.val() || {};
+      const tid = val.terminalId || val.term || null;
+      if(String(tid) === String(boundTerminal)) toRemove.push(child.key);
+    });
+
+    if(toRemove.length === 0){
+      alert('Записей для этого терминала не найдено.');
+      return;
+    }
+
+    const confirmDel = confirm(`Найдено ${toRemove.length} записей. Удалить все?`);
+    if(!confirmDel) return;
+
+    // perform removals sequentially (safer)
+    for(const k of toRemove){
+      await dbRef.child(k).remove();
+    }
+    showToast('Записи удалены для терминала ' + boundTerminal);
+    // local cleanup
+    for(const k of toRemove) ops.delete(k);
+    renderList();
+  } catch(err){
+    console.error('Ошибка при удалении записей:', err);
+    alert('Ошибка при удалении. Посмотрите консоль.');
+  }
 });
 
 // hard reload
@@ -260,15 +313,39 @@ function buildCard(op){
   }
   card.appendChild(itemsSummary);
 
-  const actions = document.createElement('div'); actions.className='actions';
+  // bottom row: time on left, actions on right (same line)
+  const bottom = document.createElement('div'); bottom.className = 'bottom-row';
+  const leftMeta = document.createElement('div'); leftMeta.className = 'left-meta';
+  const timePill = document.createElement('div'); timePill.className = 'time-pill'; timePill.textContent = formatTime(op.time);
+  leftMeta.appendChild(timePill);
+  bottom.appendChild(leftMeta);
+
+  const actions = document.createElement('div'); actions.className = 'actions';
+
   const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Просмотр';
   viewBtn.onclick = ()=> showModal(op);
-  const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить';
-  accept.onclick = ()=> updateOpStatus(op.key, 'confirmed');
-  const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Отклонить';
-  reject.onclick = ()=> updateOpStatus(op.key, 'cancelled');
-  actions.appendChild(viewBtn); actions.appendChild(accept); actions.appendChild(reject);
-  card.appendChild(actions);
+  actions.appendChild(viewBtn);
+
+  // Only show accept/reject when status == pending
+  if(op.status === 'pending'){
+    const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить';
+    accept.onclick = ()=> updateOpStatus(op.key, 'confirmed');
+    const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Отклонить';
+    reject.onclick = ()=> updateOpStatus(op.key, 'cancelled');
+    actions.appendChild(accept); actions.appendChild(reject);
+  } else {
+    // handled: show small hint who/when handled (if available)
+    const info = document.createElement('div'); info.className='muted'; info.style.marginLeft='8px';
+    if(op.handledBy || op.handledAt){
+      const hb = op.handledBy ? op.handledBy : '';
+      const ht = op.handledAt ? formatTime(op.handledAt) : '';
+      info.textContent = `Обработано: ${hb} ${ht}`.trim();
+      leftMeta.appendChild(info);
+    }
+  }
+
+  bottom.appendChild(actions);
+  card.appendChild(bottom);
 
   return card;
 }
@@ -318,13 +395,19 @@ function showModal(op){
   } else pos.textContent = 'Нет позиций';
 
   const actions = document.createElement('div'); actions.className = 'modal-actions';
-  const btnDecline = document.createElement('button'); btnDecline.className = 'btn'; btnDecline.textContent = 'Отклонить';
-  btnDecline.onclick = ()=> { updateOpStatus(op.key, 'cancelled'); closeModal(); };
-  const btnAccept = document.createElement('button'); btnAccept.className = 'btn'; btnAccept.textContent = 'Подтвердить';
-  btnAccept.onclick = ()=> { updateOpStatus(op.key, 'confirmed'); closeModal(); };
-  const btnClose = document.createElement('button'); btnClose.className = 'btn secondary'; btnClose.textContent = 'Закрыть';
+  const btnClose = document.createElement('button'); btnClose.className='btn secondary'; btnClose.textContent='Закрыть';
   btnClose.onclick = closeModal;
-  actions.appendChild(btnDecline); actions.appendChild(btnAccept); actions.appendChild(btnClose);
+  actions.appendChild(btnClose);
+
+  // If still pending, allow confirm/reject from modal
+  if(op.status === 'pending'){
+    const btnDecline = document.createElement('button'); btnDecline.className='btn'; btnDecline.textContent='Отклонить';
+    btnDecline.onclick = ()=> { updateOpStatus(op.key, 'cancelled'); closeModal(); };
+    const btnAccept = document.createElement('button'); btnAccept.className='btn'; btnAccept.textContent='Подтвердить';
+    btnAccept.onclick = ()=> { updateOpStatus(op.key, 'confirmed'); closeModal(); };
+    actions.insertBefore(btnDecline, btnClose);
+    actions.insertBefore(btnAccept, btnClose);
+  }
 
   modal.appendChild(h); modal.appendChild(meta); modal.appendChild(pos); modal.appendChild(actions);
   backdrop.appendChild(modal);
@@ -369,7 +452,10 @@ function snapshotToOp(snapshot){
   } catch(e){
     console.warn('Ошибка разбора items:', e);
   }
-  return { key, status, terminalId, amount, totalCount, items, time };
+  // include handled info if present
+  const handledBy = val.handledBy || null;
+  const handledAt = val.handledAt || null;
+  return { key, status, terminalId, amount, totalCount, items, time, handledBy, handledAt };
 }
 
 function showToast(msg){
@@ -397,7 +483,6 @@ function showToast(msg){
   if (typeof firebase === 'undefined' || !firebase || !firebase.initializeApp) {
     serverStatusEl.textContent = 'Firebase SDK не загружен';
     console.error('Firebase SDK (compat) не найден. Убедитесь, что скрипты подключены.');
-    // still allow UI: show message about missing SDK
     emptyNotice.innerHTML = `<div class="empty">Firebase SDK не загружен. Проверьте подключение скриптов.</div>`;
     return;
   }
@@ -448,7 +533,7 @@ function showToast(msg){
   }
 })();
 
-// helpers for localStorage functions declared earlier
+// helpers for localStorage functions declared earlier (redeclared to ensure availability)
 function sanitizeTerminalInput(v){
   if(!v) return null;
   const digits = v.toString().replace(/\D+/g,'');
