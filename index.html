@@ -3,13 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
 <title>FairKass — Веб-касса</title>
 
-<!-- Inline tiny SVG favicon чтобы не было 404 /favicon.ico -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' rx='3' ry='3' fill='%23FFD699'/%3E%3Ctext x='50%25' y='55%25' font-size='10' text-anchor='middle' fill='%23222' font-family='Segoe UI, Arial' %3EFK%3C/text%3E%3C/svg%3E">
+<!-- Firebase compat SDK (Realtime DB) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
   :root{
@@ -21,70 +19,90 @@
     --green:#2E7D32;
     --red:#B71C1C;
     --shadow: 0 6px 18px rgba(0,0,0,0.06);
-    --radius:14px;
+    --radius:12px;
     --mono: "Segoe UI", Roboto, Arial, sans-serif;
+    --gap:10px;
   }
-  html,body{height:100%;margin:0;font-family:var(--mono);background:var(--bg);color:#222}
-  .app { max-width:980px;margin:18px auto;padding:12px; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:var(--mono);background:var(--bg);color:#222;-webkit-font-smoothing:antialiased}
+  .app {max-width:980px;margin:10px auto;padding:12px;}
 
-  header { display:flex;align-items:center;gap:14px;padding:8px 12px; }
-  .logo { width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;
-    align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow) }
-  h1{font-size:20px;margin:0}
+  header {display:flex;align-items:center;gap:12px;padding:8px 4px}
+  .logo {width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow);flex:0 0 48px}
+  h1{font-size:18px;margin:0}
 
-  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
-  .toolbar .left{display:flex;align-items:center;gap:8px}
-  .btn{ background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow); }
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap}
+  .toolbar .left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .btn{
+    background:#fff;border:1px solid rgba(0,0,0,0.06);padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);font-weight:600;
+    min-height:44px; /* touch target */
+  }
   .btn.secondary{background:transparent}
-  .status-badge{padding:6px 10px;border-radius:999px;font-weight:600}
+  .status-badge{padding:6px 10px;border-radius:999px;font-weight:600;display:inline-block}
 
-  .list { margin-top:12px;display:flex;flex-direction:column;gap:12px;min-height:320px; }
+  .list {margin-top:12px;display:flex;flex-direction:column;gap:12px;min-height:240px;padding-bottom:12px}
 
-  .card{ background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column; }
-  .row-top{display:flex;align-items:center;gap:8px}
-  .left-info{flex:1;display:flex;flex-direction:column}
-  .terminal{font-weight:700}
+  .card{
+    background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;
+  }
+  .row-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .left-info{flex:1;display:flex;flex-direction:column;min-width:0}
+  .terminal{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .amount{font-size:18px;font-weight:700}
-  .items{color:#444;font-size:13px;margin-top:8px}
+  .items{color:#444;font-size:13px;margin-top:4px;word-break:break-word}
 
   .card.pending{background:linear-gradient(180deg,#FFF8EA 0,#FFF3D6 100%)}
-  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
 
-  footer{ margin-top:18px;padding:12px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between; }
+  footer{margin-top:14px;padding:10px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 
   /* modal */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:40}
-  .modal{width:100%;max-width:720px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,0.35)}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:40;padding:20px}
+  .modal{width:100%;max-width:720px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,0.35);max-height:calc(100vh - 80px);overflow:auto}
   .modal h2{margin:0 0 8px 0}
   .modal .meta{color:#666;font-size:13px;margin-bottom:12px}
-  .modal .positions{font-family:monospace;background:#f7f7f7;padding:10px;border-radius:8px;max-height:220px;overflow:auto}
-  .modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .modal .positions{font-family:monospace;background:#f7f7f7;padding:10px;border-radius:8px;max-height:320px;overflow:auto}
+  .modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
 
-  @media (max-width:520px){
+  /* responsive mobile improvements */
+  @media (max-width:600px){
+    .app{padding:10px}
+    header{gap:10px}
+    h1{font-size:16px}
+    .toolbar{flex-direction:column;align-items:stretch}
+    .toolbar .left{width:100%;justify-content:space-between}
+    .btn{flex:1}
+    .row-top{align-items:flex-start}
     .amount{font-size:16px}
-    header{padding:6px}
-    .logo{width:44px;height:44px}
+    .actions{flex-direction:column;align-items:stretch}
+    .modal{padding:14px;border-radius:10px}
+    .modal-backdrop{padding:8px}
+    .items{font-size:14px}
   }
+
+  /* small visual helpers */
+  .muted{color:#666;font-size:13px}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <header>
     <div class="logo">FK</div>
-    <div>
+    <div style="flex:1;min-width:0">
       <h1>FairKass — Кассир (веб)</h1>
-      <div style="font-size:13px;color:#555">Работает только с Firebase Realtime Database</div>
+      <div class="muted">Подключено к Firebase Realtime DB: <span id="serverStatus">...подключение...</span></div>
     </div>
   </header>
 
   <div class="toolbar" role="toolbar">
     <div class="left">
-      <button class="btn" id="btnReload">Перезагрузить страницу</button>
+      <!-- УДАЛИЛИ MOCK: нет кнопки "Создать тестовую операцию" -->
       <button class="btn secondary" id="btnClear">Очистить отображение</button>
+      <button class="btn secondary" id="btnReload">Жёсткая перезагрузка</button>
     </div>
-    <div>
+    <div style="display:flex;align-items:center;gap:10px">
       <span id="newCount" class="status-badge" style="background:#fff;border:1px solid rgba(0,0,0,0.06)">Новых: 0</span>
-      <span style="margin-left:8px;font-size:13px;color:#666">Режим: <strong id="modeLabel">FIREBASE</strong></span>
+      <span style="font-size:13px;color:#666">Режим: <strong id="modeLabel">FIREBASE</strong></span>
     </div>
   </div>
 
@@ -93,24 +111,22 @@
   </main>
 
   <footer>
-    <div>Сервер: <span id="serverStatus">инициализация...</span></div>
-    <div><small style="color:#555">Подключение к /paymentAttempts</small></div>
+    <div class="muted">База: <span id="dbInfo">paymentAttempts</span></div>
+    <div class="muted">Клиент: <span id="clientInfo">kassir@web</span></div>
   </footer>
 </div>
 
 <!-- Modal root -->
 <div id="modalRoot" style="display:none;"></div>
 
-<!-- Firebase compat SDK (не модульный) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
 /*
-  Убедитесь, что конфигурация firebaseConfig соответствует вашему проекту.
-  Файл работает только в режиме Firebase (mock полностью удалён).
+  УДАЛЁН MOCK. Только Firebase.
+  Скрипт инициализирует Firebase (compat) и слушает /paymentAttempts.
+  Инициализация: заполните firebaseConfig ниже.
 */
 
+// --- Вставьте сюда вашу конфигурацию Firebase (проверьте, что она подходит) ---
 const firebaseConfig = {
   apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
   authDomain: "app-fairpay.firebaseapp.com",
@@ -121,251 +137,239 @@ const firebaseConfig = {
   appId: "1:29576302334:web:0e559f804bf62c59981faf"
 };
 
-let firebaseApp = null;
-let firebaseDbRef = null;
+// Проверка наличия Firebase SDK (compat)
+if (typeof firebase === 'undefined' || !firebase || !firebase.initializeApp) {
+  document.getElementById('serverStatus').textContent = 'Firebase SDK не загружен';
+  console.error('Firebase SDK (compat) не найден. Убедитесь, что скрипты подключены.');
+} else {
+  try {
+    // инициализация
+    firebase.initializeApp(firebaseConfig);
+    const dbRef = firebase.database().ref('paymentAttempts');
 
-const ops = new Map();
-const listEl = document.getElementById('list');
-const newCountEl = document.getElementById('newCount');
-const modeLabel = document.getElementById('modeLabel');
-const serverStatus = document.getElementById('serverStatus');
+    document.getElementById('serverStatus').textContent = 'подключение...';
 
-function formatMoney(n){ return (Number(n) || 0).toFixed(2) + ' ₽'; }
-function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleString(); }
+    // контейнеры
+    const ops = new Map();
+    const listEl = document.getElementById('list');
+    const newCountEl = document.getElementById('newCount');
+    const modeLabel = document.getElementById('modeLabel');
+    const serverStatusEl = document.getElementById('serverStatus');
 
-function buildCard(op){
-  const card = document.createElement('div');
-  card.className = 'card' + (op.status === 'pending' ? ' pending' : '');
+    modeLabel.textContent = 'FIREBASE';
 
-  const top = document.createElement('div'); top.className = 'row-top';
-  const left = document.createElement('div'); left.className = 'left-info';
-  const term = document.createElement('div'); term.className = 'terminal'; term.textContent = op.terminalId || 'TERM';
-  const amount = document.createElement('div'); amount.className = 'amount'; amount.textContent = formatMoney(op.amount || 0);
-  left.appendChild(term); left.appendChild(amount);
+    function formatMoney(n){ return (+n || 0).toFixed(2) + ' ₽'; }
+    function formatTime(ts){ return new Date(ts || Date.now()).toLocaleString(); }
 
-  const status = document.createElement('div'); status.style.minWidth='96px'; status.style.textAlign='right';
-  const st = document.createElement('div'); st.textContent = (op.status||'pending').toUpperCase();
-  st.className = 'status-badge';
-  if(op.status === 'pending'){ st.style.background = 'var(--accent-strong)'; st.style.color = 'var(--orange)'; }
-  else if(op.status === 'confirmed'){ st.style.background = '#E8F5E9'; st.style.color = 'var(--green)'; }
-  else { st.style.background = '#FFEBEE'; st.style.color='var(--red)'; }
-  status.appendChild(st);
+    function buildCard(op){
+      const card = document.createElement('div');
+      card.className = 'card' + (op.status === 'pending' ? ' pending' : '');
 
-  top.appendChild(left); top.appendChild(status);
-  card.appendChild(top);
+      const top = document.createElement('div'); top.className = 'row-top';
+      const left = document.createElement('div'); left.className = 'left-info';
+      const term = document.createElement('div'); term.className = 'terminal'; term.textContent = op.terminalId || 'TERM';
+      const amount = document.createElement('div'); amount.className = 'amount'; amount.textContent = formatMoney(op.amount || 0);
+      left.appendChild(term); left.appendChild(amount);
 
-  const itemsSummary = document.createElement('div'); itemsSummary.className='items';
-  if(op.items && op.items.length){
-    itemsSummary.textContent = op.items.map(i => `${i.name} x${i.count}`).join('; ');
-  } else {
-    itemsSummary.textContent = '—';
-  }
-  card.appendChild(itemsSummary);
+      const statusWrap = document.createElement('div'); statusWrap.style.minWidth = '96px'; statusWrap.style.textAlign='right';
+      const st = document.createElement('div'); st.textContent = (op.status||'pending').toUpperCase(); st.className='status-badge';
+      if(op.status === 'pending'){ st.style.background = 'var(--accent-strong)'; st.style.color = 'var(--orange)'; }
+      else if(op.status === 'confirmed'){ st.style.background = '#E8F5E9'; st.style.color = 'var(--green)'; }
+      else { st.style.background = '#FFEBEE'; st.style.color='var(--red)'; }
+      statusWrap.appendChild(st);
 
-  const actions = document.createElement('div'); actions.className='actions';
-  const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Просмотр';
-  viewBtn.onclick = ()=> showModal(op);
-  const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить';
-  accept.onclick = ()=> updateOpStatus(op.key, 'confirmed');
-  const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Отклонить';
-  reject.onclick = ()=> updateOpStatus(op.key, 'cancelled');
-  actions.appendChild(viewBtn); actions.appendChild(accept); actions.appendChild(reject);
-  card.appendChild(actions);
+      top.appendChild(left); top.appendChild(statusWrap);
+      card.appendChild(top);
 
-  return card;
-}
+      const itemsSummary = document.createElement('div'); itemsSummary.className='items';
+      if(op.items && op.items.length){
+        itemsSummary.textContent = op.items.map(i => `${i.name} x${i.count}`).join('; ');
+      } else {
+        itemsSummary.textContent = '—';
+      }
+      card.appendChild(itemsSummary);
 
-function refreshList(){
-  listEl.innerHTML = '';
-  const arr = Array.from(ops.values());
-  const pend = arr.filter(o=>o.status === 'pending');
-  const others = arr.filter(o=>o.status !== 'pending');
-  const ordered = [...pend, ...others];
-  for(const op of ordered) listEl.appendChild(buildCard(op));
-  newCountEl.textContent = 'Новых: ' + pend.length;
-}
+      const actions = document.createElement('div'); actions.className='actions';
+      const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Просмотр';
+      viewBtn.onclick = ()=> showModal(op);
+      const accept = document.createElement('button'); accept.className='btn'; accept.textContent='Подтвердить';
+      accept.onclick = ()=> updateOpStatus(op.key, 'confirmed');
+      const reject = document.createElement('button'); reject.className='btn'; reject.textContent='Отклонить';
+      reject.onclick = ()=> updateOpStatus(op.key, 'cancelled');
+      actions.appendChild(viewBtn); actions.appendChild(accept); actions.appendChild(reject);
+      card.appendChild(actions);
 
-function showModal(op){
-  const root = document.getElementById('modalRoot');
-  root.innerHTML = '';
-  root.style.display = 'block';
-  const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
-  const modal = document.createElement('div'); modal.className='modal';
-  const h = document.createElement('h2'); h.textContent = `Оплата: ${formatMoney(op.amount || 0)}`;
-  const meta = document.createElement('div'); meta.className='meta';
-  meta.textContent = `Терминал: ${op.terminalId || '—'} • Штук: ${op.totalCount || 0} • Время: ${formatTime(op.time || Date.now())}`;
-  const pos = document.createElement('div'); pos.className='positions';
+      return card;
+    }
 
-  if(op.items && op.items.length){
-    pos.innerHTML = op.items.map(i => {
-      const price = (Number(i.price) || 0) * (Number(i.count) || 1);
-      return `${i.name} x${i.count} — ${price.toFixed(2)} ₽`;
-    }).join('<br>');
-  } else pos.textContent = 'Нет позиций';
+    function refreshList(){
+      listEl.innerHTML = '';
+      const arr = Array.from(ops.values());
+      const pend = arr.filter(o=>o.status === 'pending');
+      const others = arr.filter(o=>o.status !== 'pending');
+      const ordered = [...pend, ...others];
+      for(const op of ordered) listEl.appendChild(buildCard(op));
+      newCountEl.textContent = 'Новых: ' + pend.length;
+    }
 
-  const actions = document.createElement('div'); actions.className='modal-actions';
-  const btnDecline = document.createElement('button'); btnDecline.className='btn'; btnDecline.textContent='Отклонить';
-  btnDecline.onclick = ()=> { updateOpStatus(op.key, 'cancelled'); closeModal(); };
-  const btnAccept = document.createElement('button'); btnAccept.className='btn'; btnAccept.textContent='Подтвердить';
-  btnAccept.onclick = ()=> { updateOpStatus(op.key, 'confirmed'); closeModal(); };
-  const btnClose = document.createElement('button'); btnClose.className='btn secondary'; btnClose.textContent='Закрыть';
-  btnClose.onclick = closeModal;
-  actions.appendChild(btnDecline); actions.appendChild(btnAccept); actions.appendChild(btnClose);
+    function showModal(op){
+      const root = document.getElementById('modalRoot'); root.innerHTML=''; root.style.display='block';
+      const backdrop = document.createElement('div'); backdrop.className='modal-backdrop';
+      const modal = document.createElement('div'); modal.className='modal';
+      const h = document.createElement('h2'); h.textContent = `Оплата: ${formatMoney(op.amount || 0)}`;
+      const meta = document.createElement('div'); meta.className='meta';
+      meta.textContent = `Терминал: ${op.terminalId || '—'} • Штук: ${op.totalCount || 0} • Время: ${formatTime(op.time || Date.now())}`;
+      const pos = document.createElement('div'); pos.className='positions';
+      if(op.items && op.items.length){
+        pos.innerHTML = op.items.map(i => {
+          const price = (i.price || 0)*(i.count || 1);
+          return `${i.name} x${i.count} — ${price.toFixed(2)} ₽`;
+        }).join('<br>');
+      } else pos.textContent = 'Нет позиций';
 
-  modal.appendChild(h); modal.appendChild(meta); modal.appendChild(pos); modal.appendChild(actions);
-  backdrop.appendChild(modal);
-  root.appendChild(backdrop);
+      const actions = document.createElement('div'); actions.className='modal-actions';
+      const btnDecline = document.createElement('button'); btnDecline.className='btn'; btnDecline.textContent='Отклонить';
+      btnDecline.onclick = ()=> { updateOpStatus(op.key, 'cancelled'); closeModal(); };
+      const btnAccept = document.createElement('button'); btnAccept.className='btn'; btnAccept.textContent='Подтвердить';
+      btnAccept.onclick = ()=> { updateOpStatus(op.key, 'confirmed'); closeModal(); };
+      const btnClose = document.createElement('button'); btnClose.className='btn secondary'; btnClose.textContent='Закрыть';
+      btnClose.onclick = closeModal;
+      actions.appendChild(btnDecline); actions.appendChild(btnAccept); actions.appendChild(btnClose);
 
-  function closeModal(){ root.innerHTML = ''; root.style.display = 'none'; }
-}
+      modal.appendChild(h); modal.appendChild(meta); modal.appendChild(pos); modal.appendChild(actions);
+      backdrop.appendChild(modal);
+      root.appendChild(backdrop);
 
-function updateOpStatus(key, newStatus){
-  const op = ops.get(key);
-  if(!op) return;
-  op.status = newStatus;
-  op.handledBy = 'kassir@web';
-  op.handledAt = Date.now();
+      function closeModal(){ root.innerHTML=''; root.style.display='none'; }
+    }
 
-  if(firebaseDbRef){
-    const node = firebaseDbRef.child(key);
-    node.update({
-      status: newStatus,
-      handledBy: op.handledBy,
-      handledAt: op.handledAt
-    }).then(()=> {
-      showToast('Статус обновлён: ' + newStatus);
-    }).catch(err => {
-      console.error('Firebase update error', err);
-      showToast('Ошибка при обновлении в Firebase');
-      // локально всё равно обновим отображение
-      ops.set(key, op);
+    function updateOpStatus(key, newStatus){
+      const op = ops.get(key);
+      if(!op) return;
+      const handledBy = 'kassir@web';
+      const handledAt = Date.now();
+      // update in firebase
+      dbRef.child(key).update({
+        status: newStatus,
+        handledBy,
+        handledAt
+      }).then(()=> {
+        // local optimistic update will be applied from child_changed event
+        showToast('Статус обновлён: ' + newStatus);
+      }).catch(err=>{
+        console.error('Ошибка обновления статуса:', err);
+        showToast('Ошибка при обновлении статуса');
+      });
+    }
+
+    function snapshotToOp(snapshot){
+      const val = snapshot.val() || {};
+      const key = snapshot.key;
+      const status = val.status || 'pending';
+      const terminalId = val.terminalId || val.term || null;
+      const amount = (typeof val.amount === 'number') ? val.amount : (typeof val.total === 'number' ? val.total : 0);
+      const totalCount = val.totalCount || 0;
+      const time = val.time || Date.now();
+      const itemsRaw = val.items || {};
+      const items = [];
+      try {
+        // items could be array or map
+        if(Array.isArray(itemsRaw)){
+          itemsRaw.forEach(it => {
+            if(!it) return;
+            items.push({
+              id: it.id || null,
+              name: it.name || 'item',
+              price: parseFloat(it.price || 0),
+              count: parseInt(it.count || 1)
+            });
+          });
+        } else {
+          Object.keys(itemsRaw).forEach(k=>{
+            const it = itemsRaw[k];
+            items.push({
+              id: it && it.id ? it.id : k,
+              name: (it && it.name) ? it.name : 'item',
+              price: parseFloat((it && it.price) || 0),
+              count: parseInt((it && it.count) || 1)
+            });
+          });
+        }
+      } catch(e){
+        console.warn('Ошибка разбора items:', e);
+      }
+      return { key, status, terminalId, amount, totalCount, items, time };
+    }
+
+    function showToast(msg){
+      console.log('TOAST:', msg);
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.position='fixed'; t.style.bottom='16px'; t.style.left='50%';
+      t.style.transform='translateX(-50%)'; t.style.background='#222'; t.style.color='#fff';
+      t.style.padding='10px 14px'; t.style.borderRadius='10px'; t.style.zIndex=9999;
+      document.body.appendChild(t);
+      setTimeout(()=> t.remove(), 2500);
+    }
+
+    // Firebase listeners
+    dbRef.on('child_added', snapshot => {
+      const op = snapshotToOp(snapshot);
+      ops.set(op.key, op);
+      refreshList();
+      if(op.status === 'pending'){
+        showToast('Новая ожидающая оплата: ' + formatMoney(op.amount));
+        // Не навязываем модальное окно на телефоне — оставить по желанию
+      }
+    });
+
+    dbRef.on('child_changed', snapshot => {
+      const op = snapshotToOp(snapshot);
+      ops.set(op.key, op);
+      refreshList();
+      if(op.status === 'pending') showToast('Обновлён ожидающий платёж: ' + formatMoney(op.amount));
+    });
+
+    dbRef.on('child_removed', snapshot => {
+      const k = snapshot.key;
+      ops.delete(k);
       refreshList();
     });
-  } else {
-    ops.set(key, op);
-    refreshList();
-    showToast('Локально: статус изменён');
-  }
-}
 
-function showToast(msg){
-  console.log('TOAST:', msg);
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.position='fixed'; t.style.bottom='18px'; t.style.right='18px';
-  t.style.background='#222'; t.style.color='#fff'; t.style.padding='10px 14px'; t.style.borderRadius='10px';
-  t.style.zIndex=9999; document.body.appendChild(t);
-  setTimeout(()=> t.remove(), 2600);
-}
+    // initial connection info
+    firebase.database().ref('.info/connected').on('value', snap => {
+      const connected = snap.val() === true;
+      serverStatusEl.textContent = connected ? 'онлайн' : 'оффлайн';
+    });
 
-/* ---------------- Firebase init & listeners ---------------- */
+    // UI controls
+    document.getElementById('btnClear').addEventListener('click', ()=> {
+      ops.clear(); refreshList();
+      showToast('Отображение очищено (данные в БД не тронуты)');
+    });
 
-function initFirebaseAndStart(cfg){
-  if(typeof firebase === 'undefined' || !firebase || !firebase.initializeApp){
-    alert('Firebase SDK не найден. Проверьте подключение скриптов SDK в <head>.');
-    serverStatus.textContent = 'Ошибка: SDK не найден';
-    return;
-  }
-  try{
-    firebaseApp = firebase.initializeApp(cfg);
-    firebaseDbRef = firebase.database().ref('paymentAttempts');
-    serverStatus.textContent = 'Connected to Firebase';
-    attachFirebaseListeners();
-  }catch(e){
-    console.error('Firebase init error', e);
-    serverStatus.textContent = 'Ошибка инициализации Firebase';
-  }
-}
-
-function attachFirebaseListeners(){
-  if(!firebaseDbRef) return;
-
-  // child_added
-  firebaseDbRef.on('child_added', snapshot => {
-    const op = snapshotToOp(snapshot);
-    ops.set(op.key, op);
-    refreshList();
-    if(op.status === 'pending') {
-      showToast('Новая ожидающая оплата: ' + formatMoney(op.amount));
-      // небольшая задержка, чтобы модал не мешал отрисовке
-      setTimeout(()=> showModal(op), 300);
-    }
-  });
-
-  firebaseDbRef.on('child_changed', snapshot => {
-    const op = snapshotToOp(snapshot);
-    ops.set(op.key, op);
-    refreshList();
-    if(op.status === 'pending') showToast('Обновлён ожидающий платёж: ' + formatMoney(op.amount));
-  });
-
-  firebaseDbRef.on('child_removed', snapshot => {
-    const k = snapshot.key;
-    ops.delete(k);
-    refreshList();
-  });
-
-  // опционально — обработка ошибок соединения
-  firebaseDbRef.on('value', () => {}, (err) => {
-    console.error('DB listener error', err);
-    serverStatus.textContent = 'Ошибка чтения БД';
-  });
-}
-
-function snapshotToOp(snapshot){
-  const val = snapshot.val() || {};
-  const key = snapshot.key;
-  const status = val.status || 'pending';
-  const terminalId = val.terminalId || val.term || null;
-  const amount = (typeof val.amount === 'number') ? val.amount : (typeof val.total === 'number' ? val.total : Number(val.amount) || 0);
-  const totalCount = val.totalCount || 0;
-  const time = val.time || Date.now();
-  const itemsRaw = val.items || {};
-  const items = [];
-
-  if(Array.isArray(itemsRaw)){
-    itemsRaw.forEach((it, idx) => {
-      if(!it) return;
-      items.push({
-        id: it.id || String(idx),
-        name: it.name || 'item',
-        price: Number(it.price) || 0,
-        count: Number(it.count) || 1
+    // Hard reload (сбрасывает кэш браузера, но не гарантирует 100% везде).
+    // Выполняем fetch с cache: 'reload' и затем location.reload(true) эквивалент.
+// Note: location.reload(true) устарел — используем комбинацию:
+    document.getElementById('btnReload').addEventListener('click', ()=> {
+      // try to force reload by fetching current document with cache bypass, then reload
+      fetch(window.location.href, {cache: 'reload', mode: 'no-cors'}).finally(()=> {
+        // hard reload
+        location.reload();
       });
     });
-  } else {
-    Object.keys(itemsRaw).forEach(k=>{
-      const it = itemsRaw[k] || {};
-      items.push({
-        id: it.id || k,
-        name: it.name || 'item',
-        price: Number(it.price) || 0,
-        count: Number(it.count) || 1
-      });
-    });
-  }
 
-  return { key, status, terminalId, amount: Number(amount) || 0, totalCount, items, time };
+    // keep dbInfo updated
+    document.getElementById('dbInfo').textContent = 'paymentAttempts';
+
+    // initial refresh
+    refreshList();
+
+  } catch (err) {
+    console.error('Ошибка инициализации Firebase:', err);
+    document.getElementById('serverStatus').textContent = 'ошибка инициализации';
+  }
 }
-
-/* ----------------------------------------------------------- */
-/* UI кнопки */
-document.getElementById('btnClear').addEventListener('click', ()=> { ops.clear(); refreshList(); showToast('Отображение очищено'); });
-document.getElementById('btnReload').addEventListener('click', ()=> { 
-  // жесткая перезагрузка страницы
-  try {
-    // большинство браузеров игнорируют параметр, но мета-теги помогут
-    location.reload();
-  } catch(e){
-    location.href = location.href;
-  }
-});
-
-/* Автоинициализация */
-initFirebaseAndStart(firebaseConfig);
-
-/* Экспорт в консоль для отладки */
-window._fk = { ops, refreshList, initFirebaseAndStart };
 </script>
 </body>
 </html>
