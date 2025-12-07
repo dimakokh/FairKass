@@ -99,11 +99,6 @@
   <main>
     <div id="list" class="list" aria-live="polite"></div>
   </main>
-
-  <footer>
-    <div>Сервер: <span id="serverStatus">локально (mock)</span></div>
-    <div> <small style="color:#555">Файрбейс: опционально. Вставьте конфиг в код, вызовите initFirebase().</small> </div>
-  </footer>
 </div>
 
 <!-- Modal template -->
@@ -130,7 +125,7 @@ const newCountEl = document.getElementById('newCount');
 const modeLabel = document.getElementById('modeLabel');
 const serverStatus = document.getElementById('serverStatus');
 
-let mode = 'MOCK'; // or 'FIREBASE'
+let mode = 'FIREBASE'; // or 'FIREBASE'
 let firebaseDbRef = null;
 let firebaseApp = null;
 
