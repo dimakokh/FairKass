@@ -3,7 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>FairKass — Веб-касса</title>
+
+<!-- Inline tiny SVG favicon чтобы не было 404 /favicon.ico -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='16' height='16' rx='3' ry='3' fill='%23FFD699'/%3E%3Ctext x='50%25' y='55%25' font-size='10' text-anchor='middle' fill='%23222' font-family='Segoe UI, Arial' %3EFK%3C/text%3E%3C/svg%3E">
+
 <style>
   :root{
     --bg:#FFF8F0;
@@ -18,34 +25,22 @@
     --mono: "Segoe UI", Roboto, Arial, sans-serif;
   }
   html,body{height:100%;margin:0;font-family:var(--mono);background:var(--bg);color:#222}
-  .app {
-    max-width:980px;margin:18px auto;padding:12px;
-  }
+  .app { max-width:980px;margin:18px auto;padding:12px; }
 
-  header {
-    display:flex;align-items:center;gap:14px;padding:8px 12px;
-  }
-  .logo {
-    width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;
-    align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow)
-  }
+  header { display:flex;align-items:center;gap:14px;padding:8px 12px; }
+  .logo { width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#fff 0,#FFEFD5 80%);display:flex;
+    align-items:center;justify-content:center;font-weight:700;color:#333;box-shadow:var(--shadow) }
   h1{font-size:20px;margin:0}
 
   .toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
   .toolbar .left{display:flex;align-items:center;gap:8px}
-  .btn{
-    background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);
-  }
+  .btn{ background:#fff;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow); }
   .btn.secondary{background:transparent}
   .status-badge{padding:6px 10px;border-radius:999px;font-weight:600}
 
-  .list {
-    margin-top:12px;display:flex;flex-direction:column;gap:12px;min-height:320px;
-  }
+  .list { margin-top:12px;display:flex;flex-direction:column;gap:12px;min-height:320px; }
 
-  .card{
-    background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;
-  }
+  .card{ background:var(--card);border-radius:12px;padding:12px;box-shadow:var(--shadow);display:flex;flex-direction:column; }
   .row-top{display:flex;align-items:center;gap:8px}
   .left-info{flex:1;display:flex;flex-direction:column}
   .terminal{font-weight:700}
@@ -55,9 +50,7 @@
   .card.pending{background:linear-gradient(180deg,#FFF8EA 0,#FFF3D6 100%)}
   .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-  footer{
-    margin-top:18px;padding:12px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between;
-  }
+  footer{ margin-top:18px;padding:12px;border-radius:10px;background:#FFF0C2;display:flex;align-items:center;justify-content:space-between; }
 
   /* modal */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:40}
@@ -67,7 +60,6 @@
   .modal .positions{font-family:monospace;background:#f7f7f7;padding:10px;border-radius:8px;max-height:220px;overflow:auto}
   .modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-  /* small */
   @media (max-width:520px){
     .amount{font-size:16px}
     header{padding:6px}
@@ -80,52 +72,67 @@
   <header>
     <div class="logo">FK</div>
     <div>
-      <h1>FairKass — Кассир (веб-прототип)</h1>
-      <div style="font-size:13px;color:#555">Симуляция потоков операций — локально или через Firebase</div>
+      <h1>FairKass — Кассир (веб)</h1>
+      <div style="font-size:13px;color:#555">Работает только с Firebase Realtime Database</div>
     </div>
   </header>
 
   <div class="toolbar" role="toolbar">
     <div class="left">
-      <button class="btn" id="btnAddTest">Создать тестовую операцию</button>
-      <button class="btn secondary" id="btnClear">Очистить список</button>
+      <button class="btn" id="btnReload">Перезагрузить страницу</button>
+      <button class="btn secondary" id="btnClear">Очистить отображение</button>
     </div>
     <div>
       <span id="newCount" class="status-badge" style="background:#fff;border:1px solid rgba(0,0,0,0.06)">Новых: 0</span>
-      <span style="margin-left:8px;font-size:13px;color:#666">Режим: <strong id="modeLabel">MOCK</strong></span>
+      <span style="margin-left:8px;font-size:13px;color:#666">Режим: <strong id="modeLabel">FIREBASE</strong></span>
     </div>
   </div>
 
   <main>
     <div id="list" class="list" aria-live="polite"></div>
   </main>
+
+  <footer>
+    <div>Сервер: <span id="serverStatus">инициализация...</span></div>
+    <div><small style="color:#555">Подключение к /paymentAttempts</small></div>
+  </footer>
 </div>
 
-<!-- Modal template -->
+<!-- Modal root -->
 <div id="modalRoot" style="display:none;"></div>
 
-<script>
-initFirebase()
+<!-- Firebase compat SDK (не модульный) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-const ops = new Map(); // key -> operation object
+<script>
+/*
+  Убедитесь, что конфигурация firebaseConfig соответствует вашему проекту.
+  Файл работает только в режиме Firebase (mock полностью удалён).
+*/
+
+const firebaseConfig = {
+  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
+  authDomain: "app-fairpay.firebaseapp.com",
+  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
+  projectId: "app-fairpay",
+  storageBucket: "app-fairpay.firebasestorage.app",
+  messagingSenderId: "29576302334",
+  appId: "1:29576302334:web:0e559f804bf62c59981faf"
+};
+
+let firebaseApp = null;
+let firebaseDbRef = null;
+
+const ops = new Map();
 const listEl = document.getElementById('list');
 const newCountEl = document.getElementById('newCount');
 const modeLabel = document.getElementById('modeLabel');
 const serverStatus = document.getElementById('serverStatus');
 
-let mode = 'FIREBASE'; // or 'FIREBASE'
-let firebaseDbRef = null;
-let firebaseApp = null;
+function formatMoney(n){ return (Number(n) || 0).toFixed(2) + ' ₽'; }
+function formatTime(ts){ const d = new Date(ts || Date.now()); return d.toLocaleString(); }
 
-function formatMoney(n){
-  return n.toFixed(2) + ' ₽';
-}
-function formatTime(ts){
-  const d = new Date(ts);
-  return d.toLocaleString();
-}
-
-// Build DOM card for operation
 function buildCard(op){
   const card = document.createElement('div');
   card.className = 'card' + (op.status === 'pending' ? ' pending' : '');
@@ -141,7 +148,7 @@ function buildCard(op){
   st.className = 'status-badge';
   if(op.status === 'pending'){ st.style.background = 'var(--accent-strong)'; st.style.color = 'var(--orange)'; }
   else if(op.status === 'confirmed'){ st.style.background = '#E8F5E9'; st.style.color = 'var(--green)'; }
-  else st.style.background = '#FFEBEE', st.style.color='var(--red)';
+  else { st.style.background = '#FFEBEE'; st.style.color='var(--red)'; }
   status.appendChild(st);
 
   top.appendChild(left); top.appendChild(status);
@@ -170,18 +177,14 @@ function buildCard(op){
 
 function refreshList(){
   listEl.innerHTML = '';
-  // pendings first
   const arr = Array.from(ops.values());
   const pend = arr.filter(o=>o.status === 'pending');
   const others = arr.filter(o=>o.status !== 'pending');
   const ordered = [...pend, ...others];
-  for(const op of ordered){
-    listEl.appendChild(buildCard(op));
-  }
+  for(const op of ordered) listEl.appendChild(buildCard(op));
   newCountEl.textContent = 'Новых: ' + pend.length;
 }
 
-// show modal with details
 function showModal(op){
   const root = document.getElementById('modalRoot');
   root.innerHTML = '';
@@ -192,9 +195,10 @@ function showModal(op){
   const meta = document.createElement('div'); meta.className='meta';
   meta.textContent = `Терминал: ${op.terminalId || '—'} • Штук: ${op.totalCount || 0} • Время: ${formatTime(op.time || Date.now())}`;
   const pos = document.createElement('div'); pos.className='positions';
+
   if(op.items && op.items.length){
     pos.innerHTML = op.items.map(i => {
-      const price = (i.price || 0) * (i.count || 1);
+      const price = (Number(i.price) || 0) * (Number(i.count) || 1);
       return `${i.name} x${i.count} — ${price.toFixed(2)} ₽`;
     }).join('<br>');
   } else pos.textContent = 'Нет позиций';
@@ -212,12 +216,9 @@ function showModal(op){
   backdrop.appendChild(modal);
   root.appendChild(backdrop);
 
-  function closeModal(){
-    root.innerHTML = ''; root.style.display='none';
-  }
+  function closeModal(){ root.innerHTML = ''; root.style.display = 'none'; }
 }
 
-// Update status locally and optionally to Firebase
 function updateOpStatus(key, newStatus){
   const op = ops.get(key);
   if(!op) return;
@@ -225,8 +226,7 @@ function updateOpStatus(key, newStatus){
   op.handledBy = 'kassir@web';
   op.handledAt = Date.now();
 
-  // If Firebase enabled, push update
-  if(mode === 'FIREBASE' && firebaseDbRef){
+  if(firebaseDbRef){
     const node = firebaseDbRef.child(key);
     node.update({
       status: newStatus,
@@ -234,123 +234,81 @@ function updateOpStatus(key, newStatus){
       handledAt: op.handledAt
     }).then(()=> {
       showToast('Статус обновлён: ' + newStatus);
-    }).catch(()=> showToast('Ошибка при обновлении в Firebase'));
+    }).catch(err => {
+      console.error('Firebase update error', err);
+      showToast('Ошибка при обновлении в Firebase');
+      // локально всё равно обновим отображение
+      ops.set(key, op);
+      refreshList();
+    });
   } else {
-    // local only
     ops.set(key, op);
     refreshList();
-    showToast('Статус изменён локально: ' + newStatus);
+    showToast('Локально: статус изменён');
   }
 }
 
-// Simple toast
 function showToast(msg){
   console.log('TOAST:', msg);
-  // небольшая нотификация через alert-style (не блокирует)
   const t = document.createElement('div');
   t.textContent = msg;
   t.style.position='fixed'; t.style.bottom='18px'; t.style.right='18px';
   t.style.background='#222'; t.style.color='#fff'; t.style.padding='10px 14px'; t.style.borderRadius='10px';
   t.style.zIndex=9999; document.body.appendChild(t);
-  setTimeout(()=> t.remove(), 2500);
+  setTimeout(()=> t.remove(), 2600);
 }
 
-// Mock: create a test operation (simulates child added)
-function createTestOp(){
-  const key = 'op_' + Math.random().toString(36).slice(2,9);
-  const now = Date.now();
-  const count = Math.floor(Math.random()*5)+1;
-  const items = Array.from({length:count}).map((_,i)=>({
-    id: 'it' + i,
-    name: ['Хлеб','Молоко','Яблоко','Колбаса','Сыр'][Math.floor(Math.random()*5)],
-    price: +( (Math.random()*200 + 20).toFixed(2) ),
-    count: Math.floor(Math.random()*3)+1
-  }));
-  const amount = items.reduce((s,it)=> s + it.price * it.count, 0);
-  const op = {
-    key, status: 'pending', terminalId: 'T' + (100 + Math.floor(Math.random()*900)),
-    amount: +amount.toFixed(2), totalCount: items.reduce((s,i)=>s+i.count,0),
-    items, time: now
-  };
-  // simulate arrival
-  onChildAddedMock(op);
-}
+/* ---------------- Firebase init & listeners ---------------- */
 
-// MOCK event handlers (imitate Firebase child events)
-function onChildAddedMock(op){
-  ops.set(op.key, op);
-  // show modal & bring to front behaviour: here just show modal
-  refreshList();
-  // show modal for new pending
-  if(op.status === 'pending') {
-    // small delay for UX
-    setTimeout(()=> showModal(op), 200);
-  }
-}
-function onChildChangedMock(op){
-  ops.set(op.key, op);
-  refreshList();
-}
-function onChildRemovedMock(key){
-  ops.delete(key);
-  refreshList();
-}
-
-// Clear list
-document.getElementById('btnClear').addEventListener('click', ()=> {
-  ops.clear(); refreshList();
-});
-
-// Create test op
-document.getElementById('btnAddTest').addEventListener('click', createTestOp);
-
-// Initialize with a few sample ops
-(function seed(){
-  for(let i=0;i<2;i++) createTestOp();
-})();
-
-function initFirebase(config){
+function initFirebaseAndStart(cfg){
   if(typeof firebase === 'undefined' || !firebase || !firebase.initializeApp){
-    alert('Firebase SDK не найден. Добавьте firebase-app-compat.js и firebase-database-compat.js в <head>.');
+    alert('Firebase SDK не найден. Проверьте подключение скриптов SDK в <head>.');
+    serverStatus.textContent = 'Ошибка: SDK не найден';
     return;
   }
   try{
-    firebaseApp = firebase.initializeApp(config);
+    firebaseApp = firebase.initializeApp(cfg);
     firebaseDbRef = firebase.database().ref('paymentAttempts');
-    mode = 'FIREBASE';
-    modeLabel.textContent = 'FIREBASE';
     serverStatus.textContent = 'Connected to Firebase';
     attachFirebaseListeners();
-    showToast('Firebase инициализирован');
   }catch(e){
-    console.error(e);
-    alert('Ошибка инициализации Firebase: ' + e.message);
+    console.error('Firebase init error', e);
+    serverStatus.textContent = 'Ошибка инициализации Firebase';
   }
 }
 
 function attachFirebaseListeners(){
   if(!firebaseDbRef) return;
+
   // child_added
   firebaseDbRef.on('child_added', snapshot => {
     const op = snapshotToOp(snapshot);
     ops.set(op.key, op);
     refreshList();
     if(op.status === 'pending') {
-      // show modal to grab attention
       showToast('Новая ожидающая оплата: ' + formatMoney(op.amount));
+      // небольшая задержка, чтобы модал не мешал отрисовке
       setTimeout(()=> showModal(op), 300);
     }
   });
+
   firebaseDbRef.on('child_changed', snapshot => {
     const op = snapshotToOp(snapshot);
     ops.set(op.key, op);
     refreshList();
     if(op.status === 'pending') showToast('Обновлён ожидающий платёж: ' + formatMoney(op.amount));
   });
+
   firebaseDbRef.on('child_removed', snapshot => {
     const k = snapshot.key;
     ops.delete(k);
     refreshList();
+  });
+
+  // опционально — обработка ошибок соединения
+  firebaseDbRef.on('value', () => {}, (err) => {
+    console.error('DB listener error', err);
+    serverStatus.textContent = 'Ошибка чтения БД';
   });
 }
 
@@ -359,38 +317,55 @@ function snapshotToOp(snapshot){
   const key = snapshot.key;
   const status = val.status || 'pending';
   const terminalId = val.terminalId || val.term || null;
-  const amount = (typeof val.amount === 'number') ? val.amount : (typeof val.total === 'number' ? val.total : 0);
+  const amount = (typeof val.amount === 'number') ? val.amount : (typeof val.total === 'number' ? val.total : Number(val.amount) || 0);
   const totalCount = val.totalCount || 0;
   const time = val.time || Date.now();
   const itemsRaw = val.items || {};
   const items = [];
-  // items may be map of -> object
-  Object.keys(itemsRaw).forEach(k=>{
-    const it = itemsRaw[k];
-    items.push({
-      id: it.id || k,
-      name: it.name || 'item',
-      price: parseFloat(it.price || 0),
-      count: parseInt(it.count || 1)
+
+  if(Array.isArray(itemsRaw)){
+    itemsRaw.forEach((it, idx) => {
+      if(!it) return;
+      items.push({
+        id: it.id || String(idx),
+        name: it.name || 'item',
+        price: Number(it.price) || 0,
+        count: Number(it.count) || 1
+      });
     });
-  });
-  return { key, status, terminalId, amount, totalCount, items, time };
+  } else {
+    Object.keys(itemsRaw).forEach(k=>{
+      const it = itemsRaw[k] || {};
+      items.push({
+        id: it.id || k,
+        name: it.name || 'item',
+        price: Number(it.price) || 0,
+        count: Number(it.count) || 1
+      });
+    });
+  }
+
+  return { key, status, terminalId, amount: Number(amount) || 0, totalCount, items, time };
 }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyABvY_6cHonbLvdBj5cYMSheJDLMd_-bNw",
-  authDomain: "app-fairpay.firebaseapp.com",
-  databaseURL: "https://app-fairpay-default-rtdb.firebaseio.com",
-  projectId: "app-fairpay",
-  storageBucket: "app-fairpay.firebasestorage.app",
-  messagingSenderId: "29576302334",
-  appId: "1:29576302334:web:0e559f804bf62c59981faf"
-};
+/* ----------------------------------------------------------- */
+/* UI кнопки */
+document.getElementById('btnClear').addEventListener('click', ()=> { ops.clear(); refreshList(); showToast('Отображение очищено'); });
+document.getElementById('btnReload').addEventListener('click', ()=> { 
+  // жесткая перезагрузка страницы
+  try {
+    // большинство браузеров игнорируют параметр, но мета-теги помогут
+    location.reload();
+  } catch(e){
+    location.href = location.href;
+  }
+});
 
-const app = initializeApp(firebaseConfig);
-  
-window.initFirebase = initFirebase;
-window.createTestOp = createTestOp;
+/* Автоинициализация */
+initFirebaseAndStart(firebaseConfig);
+
+/* Экспорт в консоль для отладки */
+window._fk = { ops, refreshList, initFirebaseAndStart };
 </script>
 </body>
 </html>
